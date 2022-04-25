@@ -11,7 +11,7 @@ Some notes on cbit:
 
 Each file should consist of a single C function.
 
-It only understands a subset of C: 
+It only understands a subset of C:
 
 * It can only deal with integral data types: long, short,
   char, signed & unsigned.

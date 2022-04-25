@@ -9,6 +9,19 @@ $Finfo = "$progdir/all-functions.txt";
 $FLAGS = "-t";
 $PROG = "$progdir/checkprogs.pl";
 
+# Ensure use of the 'C' locale for this process and all subprocesses.
+# This prevents a class of spurious failures.  Note that we do not
+# 'use locale' here or anywhere else, but Perl may nonetheless emit
+# complaints about invalid locale environment variable settings.
+do {
+    for my $k (keys %ENV) {
+        if ($k eq 'LANG' || $k eq 'LANGUAGE' || $k =~ /^LC_/) {
+            delete $ENV{$k};
+        }
+    }
+    $ENV{LC_ALL} = 'C';
+};
+
 getopts('hgtvkf:r:');
 
 if ($opt_h) {
@@ -39,7 +52,7 @@ if ($opt_v) {
 }
 
 # Set time limit
-$FLAGS = $FLAGS . " -T 30";
+$FLAGS = $FLAGS . " -T 10";
 
 
 $totalscore = 0;
@@ -86,7 +99,7 @@ if ($opt_f) {
   open TESTFILE, $Fref || die "Couldn't open reference file $Fref\n";
   while (<TESTFILE>) {
     $line = $_;
-    if ($line =~ /[\s]*(unsigned|int)[\s]+test_([a-zA-Z0-9_]+)[\s]*\(/) {
+    if ($line =~ /[\s]*(long|unsigned|int)[\s]+test_([a-zA-Z0-9_]+)[\s]*\(/) {
       $funname = $2;
       if ($verbose) {
 	print "Testing function '$funname'\n";

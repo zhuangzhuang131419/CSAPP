@@ -92,7 +92,7 @@ while (<SATFILE>) {
 		$asst[$var] = $val;
 	    }
 	}
-	    
+
     }
 }
 

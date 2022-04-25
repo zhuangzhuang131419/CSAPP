@@ -74,7 +74,7 @@ while (<INFILE>)
 	break;
     }
     $line = $_;
-    if (!$found && $line =~ /[\s]*(int|unsigned)[\s]+$proc1[\s]*\(/) {
+    if (!$found && $line =~ /[\s]*(long|int|unsigned)[\s]+$proc1[\s]*\(/) {
 	# found the line
 	$found = 1;
       }
@@ -117,7 +117,7 @@ if ($file_cnt > 1) {
     	    break;
         }
 	$line = $_;
-	if (!$found && $line =~ /[\s]*(int|unsigned)[\s]+$proc2[\s]*\(/) {
+	if (!$found && $line =~ /[\s]*(long|int|unsigned)[\s]+$proc2[\s]*\(/) {
 	    # found the line
 	    $found = 1;
 	}
@@ -207,7 +207,7 @@ if ($opt_d) {
         if ($opt_v) {
             print "$cbit $newfile1 $newfile2 \n";
         }
-	
+
        $satresult = `$cbit $newfile1 $newfile2` ||
         "Error: Couldn't process file(s) $newfile1 $newfile2 with BDDs\n";
 
@@ -218,7 +218,7 @@ if ($opt_d) {
         if ($opt_v) {
             print "$cbit -s $newfile1 $newfile2 -o $cnffile\n";
         }
-	
+
        $result = `$cbit -s $newfile1 $newfile2 -o $cnffile` ||
         die "ERROR: $result\nCouldn't generate CNF file $cnffile\n";
 
@@ -288,15 +288,16 @@ if ($opt_t && $error) {
     }
     open(TESTFILE, ">$testfile") || die("Couldn't open test file $testfile\n");
     @arglines = split(/\n/, $satresult);
+    $argdigits = 0;
     foreach $sline (@arglines) {
         chomp $sline;
-        if ($sline =~ /arg-([a-zA-Z_0-9]+):([-]*[0-9]+)/) {
+        if ($sline =~ /arg-([a-zA-Z_0-9]+):(0[xX][0-9a-fA-F]+[lL]*)/) {
 	    $val = $2;
-	    if ($val eq "-2147483648") {
-		$val = "1<<31";
-	    }
 	    if ($firstarg) {
-		$argstring = $val;
+		$argstring = "$val";
+		if ($val =~ /0[xX]([0-9a-fA-F]+)/) {
+		    $argdigits = length $1;
+		}
 	    } else {
 		$argstring = $argstring . ", " . $val;
 	    }
@@ -343,10 +344,15 @@ $code2
 
 int main()
 {
-    int val1 = $proc1($argstring);
-    int val2 = $proc2($argstring);
-    printf("$proc1($argstring) --> %d [0x%x]\\n", val1, val1);
-    printf("$proc2($argstring) --> %d [0x%x]\\n", val2, val2);
+    long val1 = $proc1($argstring);
+    long val2 = $proc2($argstring);
+    if ($argdigits == 8) {
+	printf("$proc1($argstring) --> %ldL [0x%.8lx]\\n", val1, val1);
+	printf("$proc2($argstring) --> %ldL [0x%.8lx]\\n", val2, val2);
+    } else {
+	printf("$proc1($argstring) --> %ldL [0x%.16lxL]\\n", val1, val1);
+	printf("$proc2($argstring) --> %ldL [0x%.16lxL]\\n", val2, val2);
+    }
     if (val1 == val2) {
 	printf(".. False negative\\n");
     } else
