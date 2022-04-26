@@ -125,10 +125,7 @@ extern int printf(const char *, ...);
  *   Rating: 2
  */
 long copyLSB(long x) {
-    if (x & 1) {
-        return -1;
-    }
-    return 0;
+    return (x << 63) >> 63;
 }
 
 /*
@@ -140,10 +137,15 @@ long copyLSB(long x) {
  *   Rating: 2
  */
 long dividePower2(long x, long n) {
-    if (x > 0) {
-        return x >> n;
-    }
-    return (x + (1 << n) - 1) >> n;
+
+    // int mask = 1 << 31;
+    // x & mask
+    // return (x + (1 << n) - 1);
+    long sign = x >> 63;
+    printf("sign: %ld\n", sign);
+    printf("bias: %d\n", (1 << n) - 1);
+    // printf("bias: %ld\n", sign & ((1 << n) - 1));
+    return (x + (sign & ((1 << n) - 1))) >> n;
 }
 /*
  * distinctNegation - returns 1 if x != -x.
@@ -153,10 +155,7 @@ long dividePower2(long x, long n) {
  *   Rating: 2
  */
 long distinctNegation(long x) {
-    if (x != ~x + 1) {
-        return 1;
-    }
-    return 0;
+    return !!((~x + 1) ^ x);
 }
 /*
  * anyEvenBit - return 1 if any even-numbered bit in word set to 1
@@ -167,6 +166,8 @@ long distinctNegation(long x) {
  *   Rating: 2
  */
 long anyEvenBit(long x) {
+    // int mask = 3;
+    // (x & mask) & 1
     return 2L;
 }
 // 3
