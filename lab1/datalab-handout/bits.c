@@ -137,15 +137,9 @@ long copyLSB(long x) {
  *   Rating: 2
  */
 long dividePower2(long x, long n) {
-
-    // int mask = 1 << 31;
-    // x & mask
-    // return (x + (1 << n) - 1);
     long sign = x >> 63;
-    printf("sign: %ld\n", sign);
-    printf("bias: %d\n", (1 << n) - 1);
-    // printf("bias: %ld\n", sign & ((1 << n) - 1));
-    return (x + (sign & ((1 << n) - 1))) >> n;
+    long bias = (1L << n) - 1;
+    return (x + (sign & bias)) >> n;
 }
 /*
  * distinctNegation - returns 1 if x != -x.
@@ -155,6 +149,9 @@ long dividePower2(long x, long n) {
  *   Rating: 2
  */
 long distinctNegation(long x) {
+    // printf("x = %ld\n", x);
+    // printf("(~x + 1) ^ x = %ld\n", (~x + 1) ^ x);
+    // printf("!((~x + 1) ^ x) = %d\n", !((~x + 1) ^ x));
     return !!((~x + 1) ^ x);
 }
 /*
@@ -166,9 +163,11 @@ long distinctNegation(long x) {
  *   Rating: 2
  */
 long anyEvenBit(long x) {
-    // int mask = 3;
-    // (x & mask) & 1
-    return 2L;
+    long mask = 0x55;
+    mask += mask << 8;
+    mask += mask << 16;
+    mask += mask << 32;
+    return !!(x & mask);
 }
 // 3
 /*
@@ -179,11 +178,13 @@ long anyEvenBit(long x) {
  *   Rating: 3
  */
 long isLessOrEqual(long x, long y) {
-    int negX = ~x + 1;
-    if (negX + y >= 0) {
-        return 1;
-    }
-    return 0;
+    long negX = ~x + 1;
+    int signX = x >> 63 & 1;
+    int signY = y >> 63 & 1;
+    // printf("sum = %ld\n", y + negX);
+    int sumSign = ((y + negX) >> 63) & 1;
+    // printf("signX = %d, signY = %d, sumSign= %d\n", signX, signY, sumSign);
+    return ((!(signX ^ signY)) & !sumSign) | (signX & (!signY));
 }
 /*
  * replaceByte(x,n,c) - Replace byte n in x with c
@@ -195,7 +196,11 @@ long isLessOrEqual(long x, long y) {
  *   Rating: 3
  */
 long replaceByte(long x, long n, long c) {
-    return 2;
+    long mask = 255L;
+    mask = ~(mask << (n << 3));
+    // printf("mask=%ld, x & mask=%ld, c=%ld\n, ", mask, (x & mask),
+    //        (c << (n << 3)));
+    return (x & mask) | (c << (n << 3));
 }
 /*
  * conditional - same as x ? y : z
@@ -205,7 +210,12 @@ long replaceByte(long x, long n, long c) {
  *   Rating: 3
  */
 long conditional(long x, long y, long z) {
-    return 2L;
+    long factorY = (long)(!!(x ^ 0L)) << 63 >> 63;
+    long optionY = factorY & y;
+    long factorZ = (long)(!(x ^ 0L)) << 63 >> 63;
+    long optionZ = factorZ & z;
+    // printf("factor = %ld, optionZ = %ld\n", factorZ, optionZ);
+    return optionY + optionZ;
 }
 /*
  * bitMask - Generate a mask consisting of all 1's
@@ -218,7 +228,10 @@ long conditional(long x, long y, long z) {
  *   Rating: 3
  */
 long bitMask(long highbit, long lowbit) {
-    return 2L;
+    long bits = ~0L;
+    // printf("highbit = %ld\n", bits << highbit << 1);
+    // printf("lowbit = %ld\n", (bits << lowbit));
+    return ((bits << highbit << 1) ^ (bits << lowbit)) & (bits << lowbit);
 }
 // 4
 /*
@@ -243,7 +256,16 @@ long isPalindrome(long x) {
  *  Rating: 4
  */
 long trueFiveEighths(long x) {
-    return 2L;
+    long xdiv8 = x >> 3;
+    long remainder = x & 7L;
+
+    long remainder_mul_5 = ((remainder << 2) + remainder);
+
+    long x_is_neg = x >> 63;
+    long carry = (remainder_mul_5 + (x_is_neg & 0x7)) >> 3;
+    // printf("x div 8=%ld, remainder=%ld, remainder_mul_5=%ld, carry=%ld\n",
+    //        xdiv8, remainder, remainder_mul_5, carry);
+    return (xdiv8 << 2) + xdiv8 + carry;
 }
 /*
  * logicalNeg - implement the ! operator, using all of
@@ -254,5 +276,5 @@ long trueFiveEighths(long x) {
  *   Rating: 4
  */
 long logicalNeg(long x) {
-    return 2L;
+    return (((~x + 1) | x) >> 63) + 1;
 }
