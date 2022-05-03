@@ -1,84 +1,91 @@
-	.section	__TEXT,__text,regular,pure_instructions
-	.build_version macos, 12, 0	sdk_version 12, 3
-	.globl	_plus                           ## -- Begin function plus
-	.p2align	4, 0x90
-_plus:                                  ## @plus
+	.file	"sum.c"
+	.text
+	.globl	plus
+	.type	plus, @function
+plus:
+.LFB41:
 	.cfi_startproc
-## %bb.0:
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset %rbp, -16
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register %rbp
 	leaq	(%rdi,%rsi), %rax
-	popq	%rbp
-	retq
+	ret
 	.cfi_endproc
-                                        ## -- End function
-	.globl	_sumstore                       ## -- Begin function sumstore
-	.p2align	4, 0x90
-_sumstore:                              ## @sumstore
+.LFE41:
+	.size	plus, .-plus
+	.globl	sumstore
+	.type	sumstore, @function
+sumstore:
+.LFB42:
 	.cfi_startproc
-## %bb.0:
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset %rbp, -16
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register %rbp
 	pushq	%rbx
-	pushq	%rax
-	.cfi_offset %rbx, -24
+	.cfi_def_cfa_offset 16
+	.cfi_offset 3, -16
 	movq	%rdx, %rbx
-	callq	_plus
+	call	plus
 	movq	%rax, (%rbx)
-	addq	$8, %rsp
 	popq	%rbx
-	popq	%rbp
-	retq
+	.cfi_def_cfa_offset 8
+	ret
 	.cfi_endproc
-                                        ## -- End function
-	.globl	_main                           ## -- Begin function main
-	.p2align	4, 0x90
-_main:                                  ## @main
+.LFE42:
+	.size	sumstore, .-sumstore
+	.section	.rodata.str1.1,"aMS",@progbits,1
+.LC0:
+	.string	"%ld + %ld --> %ldd\n"
+	.text
+	.globl	main
+	.type	main, @function
+main:
+.LFB43:
 	.cfi_startproc
-## %bb.0:
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
-	.cfi_offset %rbp, -16
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register %rbp
-	pushq	%r14
+	.cfi_offset 6, -16
 	pushq	%rbx
-	subq	$16, %rsp
-	.cfi_offset %rbx, -32
-	.cfi_offset %r14, -24
-	movq	%rsi, %rbx
+	.cfi_def_cfa_offset 24
+	.cfi_offset 3, -24
+	subq	$24, %rsp
+	.cfi_def_cfa_offset 48
+	movq	%rsi, %rbp
+	movq	%fs:40, %rax
+	movq	%rax, 8(%rsp)
+	xorl	%eax, %eax
 	movq	8(%rsi), %rdi
-	callq	_atoi
-	movslq	%eax, %r14
-	movq	16(%rbx), %rdi
-	callq	_atoi
+	movl	$10, %edx
+	movl	$0, %esi
+	call	strtol@PLT
 	movslq	%eax, %rbx
-	leaq	-24(%rbp), %rdx
-	movq	%r14, %rdi
-	movq	%rbx, %rsi
-	callq	_sumstore
-	movq	-24(%rbp), %rcx
-	leaq	L_.str(%rip), %rdi
-	movq	%r14, %rsi
+	movq	16(%rbp), %rdi
+	movl	$10, %edx
+	movl	$0, %esi
+	call	strtol@PLT
+	movslq	%eax, %rbp
+	movq	%rsp, %rdx
+	movq	%rbp, %rsi
+	movq	%rbx, %rdi
+	call	sumstore
+	movq	(%rsp), %r8
+	movq	%rbp, %rcx
 	movq	%rbx, %rdx
-	xorl	%eax, %eax
-	callq	_printf
-	xorl	%eax, %eax
-	addq	$16, %rsp
+	leaq	.LC0(%rip), %rsi
+	movl	$1, %edi
+	movl	$0, %eax
+	call	__printf_chk@PLT
+	movq	8(%rsp), %rcx
+	xorq	%fs:40, %rcx
+	jne	.L7
+	movl	$0, %eax
+	addq	$24, %rsp
+	.cfi_remember_state
+	.cfi_def_cfa_offset 24
 	popq	%rbx
-	popq	%r14
+	.cfi_def_cfa_offset 16
 	popq	%rbp
-	retq
+	.cfi_def_cfa_offset 8
+	ret
+.L7:
+	.cfi_restore_state
+	call	__stack_chk_fail@PLT
 	.cfi_endproc
-                                        ## -- End function
-	.section	__TEXT,__cstring,cstring_literals
-L_.str:                                 ## @.str
-	.asciz	"%ld + %ld --> %ldd\n"
-
-.subsections_via_symbols
+.LFE43:
+	.size	main, .-main
+	.ident	"GCC: (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0"
+	.section	.note.GNU-stack,"",@progbits
